@@ -8,7 +8,7 @@ import config
 
 async def main():
     shazam = Shazam()
-    out = await shazam.recognize_song('summergirl.mp3')
+    out = await shazam.recognize_song('output.wav')
     track_title = out['track']['title']
     artist = out['track']['subtitle']
     print(track_title + ' by ' + artist)
