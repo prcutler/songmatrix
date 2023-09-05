@@ -9,7 +9,7 @@ certifi==2023.7.22
 cffi==1.15.1
 charset-normalizer==3.2.0
 dataclass-factory==2.16
-frozenlist==1.4.0
+frozenlist
 idna==3.4
 iniconfig==2.0.0
 multidict==6.0.4
