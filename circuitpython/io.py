@@ -8,6 +8,7 @@ import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import socketpool
 import wifi
 from adafruit_io.adafruit_io import IO_MQTT
+import json
 
 ### WiFi ###
 
@@ -78,6 +79,12 @@ def message(client, feed_id, payload):
     # the new value.
     print("Feed {0} received new value: {1}".format(feed_id, payload))
 
+    json_data = json.loads(payload)
+    print(json_data)
+    title = json_data['title']
+    artist = json_data['artist']
+    print(artist, title)
+
 
 # Create a socket pool
 pool = socketpool.SocketPool(wifi.radio)
@@ -109,7 +116,6 @@ io.connect()
 
 data = io.get('feeds/audio')
 print(data, type(data))
-
 
 while True:
     # Explicitly pump the message loop.
