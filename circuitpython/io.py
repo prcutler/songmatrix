@@ -107,8 +107,8 @@ io.on_message = message
 print("Connecting to Adafruit IO...")
 io.connect()
 
-data = io.get('audio')
-print(data)
+data = io.get('feeds/audio')
+print(data, type(data))
 
 
 while True:
