@@ -23,7 +23,7 @@ async def main():
 
     aio = Client(config.aio_username, config.aio_key)
     # audio = aio.feeds('audio')
-    aio.send_data('audio', payload)
+    aio.send_data('audio', payload_json)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
