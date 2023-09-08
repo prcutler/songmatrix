@@ -3,12 +3,12 @@
 
 import os
 import ssl
-
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import socketpool
 import wifi
-from adafruit_io.adafruit_io import IO_MQTT
+from adafruit_io.adafruit_io import IO_MQTT, IO_HTTP
 import json
+import adafruit_requests
 
 ### WiFi ###
 
@@ -89,6 +89,9 @@ def message(client, feed_id, payload):
 # Create a socket pool
 pool = socketpool.SocketPool(wifi.radio)
 
+requests = adafruit_requests.Session(pool, ssl.create_default_context())
+
+
 # Initialize a new MQTT Client object
 mqtt_client = MQTT.MQTT(
     broker="io.adafruit.com",
@@ -103,6 +106,8 @@ mqtt_client = MQTT.MQTT(
 # Initialize an Adafruit IO MQTT Client
 io = IO_MQTT(mqtt_client)
 
+aio = IO_HTTP(aio_username, aio_key, requests)
+
 # Connect the callback methods defined above to Adafruit IO
 io.on_connect = connected
 io.on_disconnect = disconnected
@@ -114,8 +119,21 @@ io.on_message = message
 print("Connecting to Adafruit IO...")
 io.connect()
 
-data = io.get('feeds/audio')
-print(data, type(data))
+# data = io.get('feeds/audio')
+# print(data, type(data))
+
+data2 = aio.receive_data('audio')
+print('receive_data ' + data2['value'], type(data2))
+
+data_string = data2['value']
+print(data_string, type(data_string))
+
+json_data = json.loads(data_string)
+print(json_data, type(json_data))
+
+print(json_data['title'])
+print(json_data['artist'])
+
 
 while True:
     # Explicitly pump the message loop.
