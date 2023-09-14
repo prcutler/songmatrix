@@ -3,11 +3,20 @@ from Adafruit_IO import Client
 from shazamio import Shazam
 import config
 import json
+import sounddevice as sd
+from scipy.io.wavfile import write
 
 
 async def main():
+    fs = 44100  # Sample rate
+    seconds = 30  # Duration of recording
+
+    myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
+    sd.wait()  # Wait until recording is finished
+    write('output.wav', fs, myrecording)  # Save as WAV file
+
     shazam = Shazam()
-    out = await shazam.recognize_song('wip/output.wav')
+    out = await shazam.recognize_song('output.wav')
     track_title = out['track']['title']
     artist = out['track']['subtitle']
     print(track_title + ' by ' + artist)
