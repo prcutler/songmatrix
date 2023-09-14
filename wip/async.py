@@ -8,7 +8,14 @@ import socketpool
 import ssl
 import time
 import wifi
-
+from adafruit_io.adafruit_io import IO_MQTT, IO_HTTP
+import displayio
+import adafruit_requests
+import json
+from adafruit_matrixportal.matrix import Matrix
+from adafruit_matrixportal.matrixportal import MatrixPortal
+import adafruit_display_text.label
+import terminalio
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
 mqtt_topic = "prcutler/feeds/audio"
@@ -18,6 +25,10 @@ wifi.radio.connect(os.getenv('CIRCUITPY_WIFI_SSID'),
 pool = socketpool.SocketPool(wifi.radio)
 ssl_context = ssl.create_default_context()
 print("Connected to wifi, my IP:", wifi.radio.ipv4_address)
+
+displayio.release_displays()
+matrix = Matrix(width=64, height=32, bit_depth=3)
+display = matrix.display
 
 
 def connected(client, userdata, flags, rc):
@@ -29,8 +40,8 @@ def disconnected(client, userdata, rc):
     print("Disconnected from MQTT Broker!")
 
 
-def message(client, topic, message):
-    print("mqtt msg:", topic, message)
+def message(client, topic, payload):
+    print("mqtt msg:", topic, payload)
 
 
 async def update_network():
