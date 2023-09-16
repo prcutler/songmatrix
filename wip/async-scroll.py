@@ -102,6 +102,13 @@ g.append(line2)
 display.show(g)
 
 
+def scroll(line):
+    line.x = line.x - 1
+    line_width = line.bounding_box[2]
+    if line.x < -line_width:
+        line.x = display.width
+
+
 def connected(client, userdata, flags, rc):
     print("Subscribing to %s" % mqtt_topic)
     client.subscribe(mqtt_topic)
@@ -114,20 +121,50 @@ def disconnected(client, userdata, rc):
 def message(client, topic, payload):
     print("mqtt msg:", topic, payload)
 
+    displayio.release_displays()
+    matrix = Matrix(width=64, height=32, bit_depth=3)
+    display = matrix.display
 
-def scroll(line):
-    line.x = line.x - 1
-    line_width = line.bounding_box[2]
-    if line.x < -line_width:
-        line.x = display.width
+    payload_data = json.loads(payload)
+    print(payload_data, type(payload_data))
+
+    song_artist = json_data['title']
+    song_title = json_data['artist']
+
+    # Create two lines of text to scroll. Besides changing the text, you can also
+    # customize the color and font (using Adafruit_CircuitPython_Bitmap_Font).
+    # To keep this demo simple, we just used the built-in font.
+    # The Y coordinates of the two lines were chosen so that they looked good
+    # but if you change the font you might find that other values work better.
+    line1 = adafruit_display_text.label.Label(
+        terminalio.FONT,
+        color=0xff0000,
+        text=song_artist)
+    line1.x = display.width
+    line1.y = 8
+
+    line2 = adafruit_display_text.label.Label(
+        terminalio.FONT,
+        color=0x0080ff,
+        text=song_title)
+    line2.x = display.width
+    line2.y = 24
+
+    # Put each line of text into a Group, then show that group.
+    g = displayio.Group()
+    g.append(line1)
+    g.append(line2)
+    display.show(g)
+    scroll(line1)
+    scroll(line2)
 
 
 async def update_network():
     mqtt_client = MQTT.MQTT(
         broker="io.adafruit.com",
         port=1883,
-        username = os.getenv('AIO_USERNAME'),
-        password = os.getenv('AIO_KEY'),
+        username=os.getenv('AIO_USERNAME'),
+        password=os.getenv('AIO_KEY'),
         socket_pool=pool,
         ssl_context=ssl_context,
         is_ssl=False,
@@ -155,6 +192,7 @@ async def update_ui():
     # this is where you'd update your screen at a regular framerate
     while True:
         scroll(line1)
+        scroll(line2)
         print("hello:", time.monotonic())
         await asyncio.sleep(0.05) # 20 Hz update rate
 
