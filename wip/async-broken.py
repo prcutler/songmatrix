@@ -51,7 +51,6 @@ if not wifi.radio.connected:
     wifi.radio.connect(secrets["ssid"], secrets["password"])
     print("Connected to %s!" % secrets["ssid"])
 
-
 # Create a socket pool
 pool = socketpool.SocketPool(wifi.radio)
 ssl_context = ssl.create_default_context()
@@ -109,62 +108,6 @@ def scroll(line):
         line.x = display.width
 
 
-def get_song_data():
-    g.pop(1)
-    g.pop(0)
-
-    aio = IO_HTTP(aio_username, aio_key, requests)
-
-    data2 = aio.receive_data('audio')
-    print('receive_data ' + data2['value'], type(data2))
-
-    # data_string = {"title": "Flowin' Prose", "artist": "Beastie Boys"}
-
-    data_string = data2['value']
-    print(data_string, type(data_string))
-
-    payload_data = json.loads(data_string)
-    print("Get song data function: ", payload_data, type(payload_data))
-
-    song_title = json_data['title']
-    song_artist = json_data['artist']
-
-    line1.text = song_artist
-
-    line2.text = song_title
-
-#    line2 = adafruit_display_text.label.Label(
-#        terminalio.FONT,
-#        color=0x0080ff,
-#        text=song_title)
-#    line2.x = display.width
-#    line2.y = 24
-
-    g.append(line1)
-    g.append(line2)
-    display.show(g)
-    display.refresh()
-
-# For testing what is displayed as line one and two
-    scroll(line1)
-    scroll(line2)
-    scroll(line1)
-    scroll(line2)
-    scroll(line1)
-    scroll(line2)
-    scroll(line1)
-    scroll(line2)
-    scroll(line1)
-    scroll(line2)
-    scroll(line1)
-    scroll(line2)
-    scroll(line1)
-    scroll(line2)
-    scroll(line1)
-    scroll(line2)
-    time.sleep(5)
-
-
 def connected(client, userdata, flags, rc):
     print("Subscribing to %s" % mqtt_topic)
     client.subscribe(mqtt_topic)
@@ -177,11 +120,68 @@ def disconnected(client, userdata, rc):
 def message(client, topic, payload):
     print("mqtt msg:", topic, payload)
 
-#    displayio.release_displays()
-#    matrix = Matrix(width=64, height=32, bit_depth=3)
-#    display = matrix.display
+    payload_data = json.loads(payload)
+    print(payload_data, type(payload_data))
 
-    get_song_data()
+    song_artist = json_data['title']
+    song_title = json_data['artist']
+
+    # Create two lines of text to scroll. Besides changing the text, you can also
+    # customize the color and font (using Adafruit_CircuitPython_Bitmap_Font).
+    # To keep this demo simple, we just used the built-in font.
+    # The Y coordinates of the two lines were chosen so that they looked good
+    # but if you change the font you might find that other values work better.
+    line1 = adafruit_display_text.label.Label(
+        terminalio.FONT,
+        color=0xff0000,
+        text=song_artist)
+    line1.x = display.width
+    line1.y = 8
+
+    line2 = adafruit_display_text.label.Label(
+        terminalio.FONT,
+        color=0x0080ff,
+        text=song_title)
+    line2.x = display.width
+    line2.y = 24
+
+    # Put each line of text into a Group, then show that group.
+    g = displayio.Group()
+    g.append(line1)
+    g.append(line2)
+    display.show(g)
+    scroll(line1)
+    scroll(line2)
+
+
+def get_song_title():
+    song_data = aio.receive_data('audio')
+    print('song_data ' + song_data['value'], type(song_data))
+
+    song_data_string = song_data['value']
+    print(song_data_string, type(song_data_string))
+
+    song_json_data = json.loads(song_data_string)
+    print(json_data, type(song_json_data))
+
+    title = song_json_data['artist']
+
+    return title
+
+
+def get_song_artist():
+    title_data = aio.receive_data('audio')
+    print('title_data ' + title_data['value'], type(title_data))
+
+    title_data_string = title_data['value']
+    print(title_data_string, type(title_data_string))
+
+    title_json_data = json.loads(title_data_string)
+    print(json_data, type(title_json_data))
+
+    artist = song_json_data['title']
+
+    return artist
 
 
 async def update_network():
@@ -219,12 +219,13 @@ async def update_ui():
         scroll(line1)
         scroll(line2)
         print("hello:", time.monotonic())
-        await asyncio.sleep(0.05) # 20 Hz update rate
+        await asyncio.sleep(0.05)  # 20 Hz update rate
 
 
 async def main():
     net_task = asyncio.create_task(update_network())
     ui_task = asyncio.create_task(update_ui())
     await asyncio.gather(net_task, ui_task)
+
 
 asyncio.run(main())

@@ -121,10 +121,6 @@ def disconnected(client, userdata, rc):
 def message(client, topic, payload):
     print("mqtt msg:", topic, payload)
 
-    displayio.release_displays()
-    matrix = Matrix(width=64, height=32, bit_depth=3)
-    display = matrix.display
-
     payload_data = json.loads(payload)
     print(payload_data, type(payload_data))
 
