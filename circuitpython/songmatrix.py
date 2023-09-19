@@ -150,16 +150,55 @@ def message(client, topic, payload):
     """
     print(topic, payload)
 
-    print(payload)
+    print(g[0])
+    # g = displayio.Group()
+    g.pop(1)
+    g.pop(0)
+
+    time.sleep(3)
+
+    json_data = json.loads(payload)
+    print(json_data, type(json_data))
+
+    song_artist = json_data['title']
+    song_title = json_data['artist']
+
+    song_title_scroll = song_title + '        '
+    song_artist_scroll = song_artist + '         '
+
+    title_scroll = ScrollingLabel(
+        terminalio.FONT,
+        text=song_title_scroll,
+        max_characters=10,
+        color=0xff0000,
+        animate_time=0.3
+    )
+    title_scroll.x = 1
+    title_scroll.y = 8
+
+    artist_scroll = ScrollingLabel(
+        terminalio.FONT,
+        text=song_artist_scroll,
+        max_characters=10,
+        color=0x0080ff,
+        animate_time=0.3
+    )
+    artist_scroll.x = 1
+    artist_scroll.y = 24
 
 
-print("Connecting to MQTT broker...")
-mqtt_client.connect()
+    g.append(title_scroll)
+    g.append(artist_scroll)
+    # display.show(g)
+
 
 # Setup the callback methods above
 mqtt_client.on_connect = connected
 mqtt_client.on_disconnect = disconnected
 mqtt_client.on_message = message
+
+print("Connecting to MQTT broker...")
+mqtt_client.connect()
 
 while True:
     title_scroll.update()
