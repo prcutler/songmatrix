@@ -143,12 +143,15 @@ def disconnected(client, userdata, rc):
 
 
 def message(client, topic, payload):
-    """Method callled when a client's subscribed feed has a new
+    """Method called when a client's subscribed feed has a new
     value.
     :param str topic: The topic of the feed with a new value.
-    :param str message: The new value
+    :param str payload: The new value
     """
     print(topic, payload)
+
+    # payload = {"title": "Flowin' Prose", "artist": "Beastie Boys"}
+    # data = json.dumps(payload)
 
     print(g[0])
     # g = displayio.Group()
@@ -186,13 +189,14 @@ def message(client, topic, payload):
     artist_scroll.x = 1
     artist_scroll.y = 24
 
-
     g.append(title_scroll)
     g.append(artist_scroll)
     # display.show(g)
+    title_scroll.update()
+    artist_scroll.update()
 
 
-# Setup the callback methods above
+# Set up the callback methods above
 mqtt_client.on_connect = connected
 mqtt_client.on_disconnect = disconnected
 mqtt_client.on_message = message
