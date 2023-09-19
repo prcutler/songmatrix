@@ -37,9 +37,6 @@ except ImportError:
     )
     raise
 
-# Set your Adafruit IO Username and Key in secrets.py
-# (visit io.adafruit.com if you need to create an account,
-# or if you need your Adafruit IO key.)
 aio_username = secrets["aio_username"]
 aio_key = secrets["aio_key"]
 
@@ -59,8 +56,9 @@ displayio.release_displays()
 matrix = Matrix(width=64, height=32, bit_depth=3)
 display = matrix.display
 
+# Mock data string for testing
 # data_string = {"title": "Flowin' Prose", "artist": "Beastie Boys"}
-#data = json.dumps(data_string)
+# data = json.dumps(data_string)
 
 aio = IO_HTTP(aio_username, aio_key, requests)
 
@@ -192,8 +190,6 @@ def message(client, topic, payload):
     g.append(title_scroll)
     g.append(artist_scroll)
     # display.show(g)
-    title_scroll.update()
-    artist_scroll.update()
 
 
 # Set up the callback methods above
