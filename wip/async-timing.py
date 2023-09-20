@@ -129,7 +129,7 @@ async def get_song_data():
         title_scroll.text = song_title_scroll
         artist_scroll.text = song_artist_scroll
 
-        print("hello:", time.monotonic())
+        # print("hello:", time.monotonic())
         await asyncio.sleep(30)  # Get new song info every 30 seconds
 
 
@@ -137,7 +137,7 @@ async def scroll_text():
     while True:
         title_scroll.update()
         artist_scroll.update()
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.1)
 
 
 async def main():
