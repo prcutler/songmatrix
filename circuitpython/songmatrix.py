@@ -70,7 +70,7 @@ else:
     requests.set_socket(socket, esp)
 
 
-#### DISPLAYIO SETUP
+# DISPLAYIO SETUP
 
 displayio.release_displays()
 matrix = Matrix(width=64, height=32, bit_depth=3)
@@ -117,7 +117,7 @@ g.append(artist_scroll)
 display.show(g)
 
 
-#### MQTT SETUP
+# MQTT SETUP
 
 def connected(client, userdata, flags, rc):
     print("Subscribing to %s" % mqtt_topic)
@@ -188,7 +188,7 @@ while True:
         time.sleep(1)
 
 
-### ASYNC
+# ASYNC
 
 async def update_network():
     while True:
