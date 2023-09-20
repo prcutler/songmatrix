@@ -27,6 +27,7 @@ async def main():
             artist = out['track']['subtitle']
             print(track_title + ' by ' + artist)
 
+            # Customize the message sent to Adafruit IO
             payload = track_title + " by " + artist
 
             aio = Client(config.aio_username, config.aio_key)
