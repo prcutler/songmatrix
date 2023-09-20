@@ -4,7 +4,7 @@
 
 SongMatrix uses a Raspberry Pi with a microphone to listen to the background music every few minutes. It then uses [`shazamio`](https://github.com/dotX12/ShazamIO) to identify the song and sends a MQTT message to the Adafruit IO MQTT broker.  The message is received on an Adafruit MatrixPortal and displays the artist and song title.
 
-# Checklist
+## Checklist
 
 In addition to a little Python knowledge, you will need:
 
@@ -17,3 +17,14 @@ In addition to a little Python knowledge, you will need:
 ## Demo
 
 ![A 32x64 Matrix displaying the song Breathing Underwater on the top row and the artist, Metric, on the bottom row](images/480p.gif)
+
+## Installation
+
+1. With your Raspberry Pi, clone the repo
+2. In the `python` directory, create a `config.py` file with two fields:
+* aio_username = "yourAdafruitIOusername"
+* aio+key = "YourAPIKey"
+
+3. Run `python record-identify.py` which starts an unending `while` loop. (`systemd` service coming soon)
+4. In the `circuitpython` directory copy `songmatrix.py` to your MatrixPortal as `code.py`
+5. Make sure your MatrixPortal's `settings.toml` includes your WiFi information and Adafruit IO credentials
