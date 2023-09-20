@@ -6,8 +6,14 @@ SongMatrix uses a Raspberry Pi with a microphone to listen to the background mus
 
 # Checklist
 
-[ ] Raspberry Pi single board computer (Any will do, I'm using an older Raspberry Pi 2 without issue)
+In addition to a little Python knowledge, you will need:
 
-[ ] USB Microphone 
+- [ ] Raspberry Pi single board computer (Any will do, I'm using an older Raspberry Pi 2 without issue)
+- [ ] USB Microphone 
+- [ ] Adafruit MatrixPortal (Should work on either the newer S3 or older M4)
+- [ ] Adafruit 32x64 RGB Matrix panel (I'm using a 2.5 pitch panel)
+- [ ] Adafruit IO account
 
-[ ] Adafruit MatrixPortal (Should work on either the newer S3 or older M4)
+## Demo
+
+![A 32x64 Matrix displaying the song Breathing Underwater on the top row and the artist, Metric, on the bottom row](images/480p.gif)
