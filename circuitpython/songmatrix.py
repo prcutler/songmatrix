@@ -135,11 +135,9 @@ def publish(client, userdata, topic, pid):
 def message(client, topic, payload):
     print("mqtt msg:", topic, payload)
 
-    # payload_data = json.loads(payload)
-    # print(payload_data, type(payload_data))
-
     song_data = str(payload)
 
+    # If you changed what is sent to Adafruit IO, you will need to update this song_string
     song_string = song_data.split(" by ", 1)
 
     song_title = song_string[0]
