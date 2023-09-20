@@ -10,19 +10,16 @@ except ImportError:
     from adafruit_esp32spi import adafruit_esp32spi
     import adafruit_esp32spi.adafruit_esp32spi_socket as socket
     import adafruit_requests as requests
-import random
 import asyncio
 import os
 import time
 import displayio
-import json
 from adafruit_matrixportal.matrix import Matrix
 import terminalio
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io import IO_MQTT, IO_HTTP
 from adafruit_minimqtt.adafruit_minimqtt import MMQTTException
 from adafruit_display_text.scrolling_label import ScrollingLabel
-# from secrets import secrets
 
 
 mqtt_topic = "prcutler/feeds/audio"
