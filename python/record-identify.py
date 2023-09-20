@@ -8,23 +8,28 @@ from scipy.io.wavfile import write
 
 
 async def main():
-    fs = 44100  # Sample rate
-    seconds = 30  # Duration of recording
 
-    my_recording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
-    sd.wait()  # Wait until recording is finished
-    write('output.wav', fs, my_recording)  # Save as WAV file
+    try:
+        fs = 44100  # Sample rate
+        seconds = 30  # Duration of recording
 
-    shazam = Shazam()
-    out = await shazam.recognize_song('output.wav')
-    track_title = out['track']['title']
-    artist = out['track']['subtitle']
-    print(track_title + ' by ' + artist)
+        my_recording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
+        sd.wait()  # Wait until recording is finished
+        write('output.wav', fs, my_recording)  # Save as WAV file
 
-    payload = track_title + " by " + artist
+        shazam = Shazam()
+        out = await shazam.recognize_song('output.wav')
+        track_title = out['track']['title']
+        artist = out['track']['subtitle']
+        print(track_title + ' by ' + artist)
 
-    aio = Client(config.aio_username, config.aio_key)
-    aio.send_data('audio', payload)
+        payload = track_title + " by " + artist
+
+        aio = Client(config.aio_username, config.aio_key)
+        aio.send_data('audio', payload)
+
+    except KeyError:
+        pass
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
