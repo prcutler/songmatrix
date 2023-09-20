@@ -9,7 +9,7 @@ from scipy.io.wavfile import write
 
 async def main():
     shazam = Shazam()
-    out = await shazam.recognize_song('wip/output.wav')
+    out = await shazam.recognize_song('output.wav')
     track_title = out['track']['title']
     artist = out['track']['subtitle']
     print(track_title + ' by ' + artist)
