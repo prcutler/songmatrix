@@ -13,7 +13,7 @@ async def main():
 
     my_recording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
     sd.wait()  # Wait until recording is finished
-    write('output.wav', fs, my_recording)  # Save as WAV file
+    write('../output.wav', fs, my_recording)  # Save as WAV file
 
     shazam = Shazam()
     out = await shazam.recognize_song('output.wav')
