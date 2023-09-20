@@ -12,6 +12,7 @@ async def main():
 
     while True:
 
+        # Try / Except to catch if a song is not identified or there is silence and will try again
         try:
             fs = 44100  # Sample rate
             seconds = 30  # Duration of recording
@@ -34,6 +35,7 @@ async def main():
         except KeyError:
             pass
 
+        # How long to wait before recording another sample in seconds
         time.sleep(180)
 
 loop = asyncio.get_event_loop()
