@@ -10,16 +10,19 @@ except ImportError:
     from adafruit_esp32spi import adafruit_esp32spi
     import adafruit_esp32spi.adafruit_esp32spi_socket as socket
     import adafruit_requests as requests
+import random
 import asyncio
 import os
 import time
 import displayio
+import json
 from adafruit_matrixportal.matrix import Matrix
 import terminalio
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io import IO_MQTT, IO_HTTP
 from adafruit_minimqtt.adafruit_minimqtt import MMQTTException
 from adafruit_display_text.scrolling_label import ScrollingLabel
+import json
 
 
 mqtt_topic = "prcutler/feeds/audio"
@@ -46,8 +49,8 @@ def reset():
     if wifi:
         pass
     else:
-        # esp.reset()
-        pass
+        esp.reset()
+        # pass
 
 
 # NETWORK SETUP
@@ -79,9 +82,11 @@ display = matrix.display
 aio = IO_HTTP(aio_username, aio_key, requests)
 
 data2 = aio.receive_data('audio')
+print(data2)
 print('receive_data ' + data2['value'], type(data2))
 
-song_data = str(data2)
+song_data = str(data2['value'])
+print(song_data)
 
 song_string = song_data.split(" by ", 1)
 
@@ -135,9 +140,11 @@ def publish(client, userdata, topic, pid):
 def message(client, topic, payload):
     print("mqtt msg:", topic, payload)
 
+    # payload_data = json.loads(payload)
+    # print(payload_data, type(payload_data))
+
     song_data = str(payload)
 
-    # If you changed what is sent to Adafruit IO, you will need to update this song_string
     song_string = song_data.split(" by ", 1)
 
     song_title = song_string[0]
@@ -180,7 +187,7 @@ while True:
     try:
         connect_wifi_mqtt()
         break
-    except Exception as ex:
+    except Exception or OSError as ex:
         print(f"Exception: {ex} Resetting wifi...")
         reset()
         time.sleep(1)
@@ -210,7 +217,6 @@ async def update_ui():
 async def main():
     net_task = asyncio.create_task(update_network())
     ui_task = asyncio.create_task(update_ui())
-    # pub_task = asyncio.create_task(publish())
     await asyncio.gather(net_task, ui_task)
 
 asyncio.run(main())
