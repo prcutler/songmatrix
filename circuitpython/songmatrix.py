@@ -119,7 +119,7 @@ artist_scroll.y = 24
 g = displayio.Group()
 g.append(title_scroll)
 g.append(artist_scroll)
-display.show(g)
+display.root_group = g
 
 
 # MQTT SETUP
@@ -199,7 +199,7 @@ async def update_network():
     while True:
         try:
             connect_wifi_mqtt()
-            mqtt_client.loop()
+            mqtt_client.loop(0.2)
         except (RuntimeError, ConnectionError, MMQTTException) as ex:
             print(f"Exception: {ex} Resetting wifi...")
             reset()
