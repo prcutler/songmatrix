@@ -110,7 +110,7 @@ artist_scroll = ScrollingLabel(
     terminalio.FONT,
     text=song_artist_scroll,
     max_characters=10,
-    color=0x0080ff,
+    color=0xFFFFFF,
     animate_time=0.3
 )
 artist_scroll.x = 1
