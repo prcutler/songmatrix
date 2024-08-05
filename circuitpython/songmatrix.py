@@ -1,16 +1,9 @@
 wifi = None
-try:
-    import socketpool
-    import ssl
-    import wifi
-    import adafruit_requests
-except ImportError:
-    import board
-    import digitalio
-    from adafruit_esp32spi import adafruit_esp32spi
-    import adafruit_esp32spi.adafruit_esp32spi_socket as socket
-    import adafruit_requests as requests
-import random
+
+import socketpool
+import ssl
+import wifi
+import adafruit_requests
 import asyncio
 import os
 import time
@@ -25,19 +18,17 @@ from adafruit_display_text.scrolling_label import ScrollingLabel
 import json
 
 
-mqtt_topic = "prcutler/feeds/audio"
-
-
+# WIFI SETUP
 def connect_wifi_mqtt():
     if wifi:
         while not wifi.radio.connected:
             print("Connecting to wifi...")
-            wifi.radio.connect(secrets["ssid"], secrets["password"])
+            wifi.radio.connect(os.getenv("CIRCUITPY_WIFI_SSID"), os.getenv("CIRCUITPY_WIFI_PASSWORD"))
             time.sleep(1)
     else:
         while not esp.is_connected:
             print("Connecting to wifi...")
-            esp.connect_AP(secrets["ssid"], secrets["password"])
+            esp.connect_AP(os.getenv("CIRCUITPY_WIFI_SSID"), os.getenv("CIRCUITPY_WIFI_PASSWORD"))
             time.sleep(1)
     while not mqtt_client.is_connected():
         print(f"Connecting to AIO...")
@@ -53,77 +44,70 @@ def reset():
         # pass
 
 
-# NETWORK SETUP
-
+# NETWORK AND ADAFRUIT IO SETUP
 time.sleep(3)  # wait for serial
 
+mqtt_topic = "prcutler/feeds/audio"
 aio_username = os.getenv("AIO_USERNAME")
 aio_key = os.getenv("AIO_KEY")
 
-if wifi:
-    pool = socketpool.SocketPool(wifi.radio)
-    ssl_context = ssl.create_default_context()
-    requests = adafruit_requests.Session(pool, ssl.create_default_context())
-else:
-    spi = board.SPI()
-    esp32_cs = digitalio.DigitalInOut(board.ESP_CS)
-    esp32_ready = digitalio.DigitalInOut(board.ESP_BUSY)
-    esp32_reset = digitalio.DigitalInOut(board.ESP_RESET)
-    esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset, debug=False)
-    requests.set_socket(socket, esp)
-
+pool = socketpool.SocketPool(wifi.radio)
+ssl_context = ssl.create_default_context()
+requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 # DISPLAYIO SETUP
-
 displayio.release_displays()
 matrix = Matrix(width=64, height=32, bit_depth=3)
 display = matrix.display
 
 aio = IO_HTTP(aio_username, aio_key, requests)
 
-data2 = aio.receive_data('audio')
-print(data2)
-print('receive_data ' + data2['value'], type(data2))
+try:
+    data2 = aio.receive_data('audio')
+    print(data2)
+    print('receive_data ' + data2['value'], type(data2))
 
-song_data = str(data2['value'])
-print(song_data)
+    song_data = str(data2['value'])
+    print(song_data)
 
-song_string = song_data.split(" by ", 1)
+    song_string = song_data.split(" by ", 1)
 
-song_title = song_string[0]
-song_artist = song_string[1]
+    song_title = song_string[0]
+    song_artist = song_string[1]
 
-song_title_scroll = song_title + '        '
-song_artist_scroll = song_artist + '         '
+    song_title_scroll = song_title + '        '
+    song_artist_scroll = song_artist + '         '
 
-title_scroll = ScrollingLabel(
-    terminalio.FONT,
-    text=song_title_scroll,
-    max_characters=10,
-    color=0xff0000,
-    animate_time=0.3
-)
-title_scroll.x = 1
-title_scroll.y = 8
+    title_scroll = ScrollingLabel(
+        terminalio.FONT,
+        text=song_title_scroll,
+        max_characters=10,
+        color=0xff0000,
+        animate_time=0.3
+    )
+    title_scroll.x = 1
+    title_scroll.y = 8
 
-artist_scroll = ScrollingLabel(
-    terminalio.FONT,
-    text=song_artist_scroll,
-    max_characters=10,
-    color=0xFFFFFF,
-    animate_time=0.3
-)
-artist_scroll.x = 1
-artist_scroll.y = 24
+    artist_scroll = ScrollingLabel(
+        terminalio.FONT,
+        text=song_artist_scroll,
+        max_characters=10,
+        color=0xFFFFFF,
+        animate_time=0.3
+    )
+    artist_scroll.x = 1
+    artist_scroll.y = 24
 
-g = displayio.Group()
-g.append(title_scroll)
-g.append(artist_scroll)
-display.root_group = g
+    g = displayio.Group()
+    g.append(title_scroll)
+    g.append(artist_scroll)
+    display.root_group = g
+
+except:
+    print("Adafruit IO reports 404 Error - is your feed empty?  Start recording.")
 
 
-# MQTT SETUP
-
+# MQTT
 def connected(client, userdata, flags, rc):
     print("Subscribing to %s" % mqtt_topic)
     client.subscribe(mqtt_topic)
