@@ -18,9 +18,7 @@ from adafruit_display_text.scrolling_label import ScrollingLabel
 import json
 
 
-mqtt_topic = "prcutler/feeds/audio"
-
-
+# WIFI SETUP
 def connect_wifi_mqtt():
     if wifi:
         while not wifi.radio.connected:
@@ -46,10 +44,10 @@ def reset():
         # pass
 
 
-# NETWORK SETUP
-
+# NETWORK AND ADAFRUIT IO SETUP
 time.sleep(3)  # wait for serial
 
+mqtt_topic = "prcutler/feeds/audio"
 aio_username = os.getenv("AIO_USERNAME")
 aio_key = os.getenv("AIO_KEY")
 
@@ -58,7 +56,6 @@ ssl_context = ssl.create_default_context()
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 # DISPLAYIO SETUP
-
 displayio.release_displays()
 matrix = Matrix(width=64, height=32, bit_depth=3)
 display = matrix.display
@@ -110,8 +107,7 @@ except:
     print("Adafruit IO reports 404 Error - is your feed empty?  Start recording.")
 
 
-# MQTT SETUP
-
+# MQTT
 def connected(client, userdata, flags, rc):
     print("Subscribing to %s" % mqtt_topic)
     client.subscribe(mqtt_topic)
