@@ -4,7 +4,6 @@ import socketpool
 import ssl
 import wifi
 import adafruit_requests
-import random
 import asyncio
 import os
 import time
