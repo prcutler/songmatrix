@@ -1,15 +1,9 @@
 wifi = None
-try:
-    import socketpool
-    import ssl
-    import wifi
-    import adafruit_requests
-except ImportError:
-    import board
-    import digitalio
-    from adafruit_esp32spi import adafruit_esp32spi
-    import adafruit_esp32spi.adafruit_esp32spi_socket as socket
-    import adafruit_requests as requests
+
+import socketpool
+import ssl
+import wifi
+import adafruit_requests
 import random
 import asyncio
 import os
@@ -60,18 +54,9 @@ time.sleep(3)  # wait for serial
 aio_username = os.getenv("AIO_USERNAME")
 aio_key = os.getenv("AIO_KEY")
 
-if wifi:
-    pool = socketpool.SocketPool(wifi.radio)
-    ssl_context = ssl.create_default_context()
-    requests = adafruit_requests.Session(pool, ssl.create_default_context())
-else:
-    spi = board.SPI()
-    esp32_cs = digitalio.DigitalInOut(board.ESP_CS)
-    esp32_ready = digitalio.DigitalInOut(board.ESP_BUSY)
-    esp32_reset = digitalio.DigitalInOut(board.ESP_RESET)
-    esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset, debug=False)
-    requests.set_socket(socket, esp)
-
+pool = socketpool.SocketPool(wifi.radio)
+ssl_context = ssl.create_default_context()
+requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 # DISPLAYIO SETUP
 
