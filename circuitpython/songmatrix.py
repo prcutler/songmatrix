@@ -81,45 +81,49 @@ display = matrix.display
 
 aio = IO_HTTP(aio_username, aio_key, requests)
 
-data2 = aio.receive_data('audio')
-print(data2)
-print('receive_data ' + data2['value'], type(data2))
+try:
+    data2 = aio.receive_data('audio')
+    print(data2)
+    print('receive_data ' + data2['value'], type(data2))
 
-song_data = str(data2['value'])
-print(song_data)
+    song_data = str(data2['value'])
+    print(song_data)
 
-song_string = song_data.split(" by ", 1)
+    song_string = song_data.split(" by ", 1)
 
-song_title = song_string[0]
-song_artist = song_string[1]
+    song_title = song_string[0]
+    song_artist = song_string[1]
 
-song_title_scroll = song_title + '        '
-song_artist_scroll = song_artist + '         '
+    song_title_scroll = song_title + '        '
+    song_artist_scroll = song_artist + '         '
 
-title_scroll = ScrollingLabel(
-    terminalio.FONT,
-    text=song_title_scroll,
-    max_characters=10,
-    color=0xff0000,
-    animate_time=0.3
-)
-title_scroll.x = 1
-title_scroll.y = 8
+    title_scroll = ScrollingLabel(
+        terminalio.FONT,
+        text=song_title_scroll,
+        max_characters=10,
+        color=0xff0000,
+        animate_time=0.3
+    )
+    title_scroll.x = 1
+    title_scroll.y = 8
 
-artist_scroll = ScrollingLabel(
-    terminalio.FONT,
-    text=song_artist_scroll,
-    max_characters=10,
-    color=0xFFFFFF,
-    animate_time=0.3
-)
-artist_scroll.x = 1
-artist_scroll.y = 24
+    artist_scroll = ScrollingLabel(
+        terminalio.FONT,
+        text=song_artist_scroll,
+        max_characters=10,
+        color=0xFFFFFF,
+        animate_time=0.3
+    )
+    artist_scroll.x = 1
+    artist_scroll.y = 24
 
-g = displayio.Group()
-g.append(title_scroll)
-g.append(artist_scroll)
-display.root_group = g
+    g = displayio.Group()
+    g.append(title_scroll)
+    g.append(artist_scroll)
+    display.root_group = g
+
+except:
+    print("Adafruit IO reports 404 Error - is your feed empty?  Start recording.")
 
 
 # MQTT SETUP
