@@ -26,12 +26,12 @@ def connect_wifi_mqtt():
     if wifi:
         while not wifi.radio.connected:
             print("Connecting to wifi...")
-            wifi.radio.connect(secrets["ssid"], secrets["password"])
+            wifi.radio.connect(os.getenv("CIRCUITPY_WIFI_SSID"), os.getenv("CIRCUITPY_WIFI_PASSWORD"))
             time.sleep(1)
     else:
         while not esp.is_connected:
             print("Connecting to wifi...")
-            esp.connect_AP(secrets["ssid"], secrets["password"])
+            esp.connect_AP(os.getenv("CIRCUITPY_WIFI_SSID"), os.getenv("CIRCUITPY_WIFI_PASSWORD"))
             time.sleep(1)
     while not mqtt_client.is_connected():
         print(f"Connecting to AIO...")
