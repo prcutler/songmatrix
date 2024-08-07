@@ -8,7 +8,6 @@ import asyncio
 import os
 import time
 import displayio
-import json
 from adafruit_matrixportal.matrix import Matrix
 import terminalio
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
