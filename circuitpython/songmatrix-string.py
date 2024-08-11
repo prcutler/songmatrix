@@ -8,7 +8,6 @@ import asyncio
 import os
 import time
 import displayio
-import json
 from adafruit_matrixportal.matrix import Matrix
 import terminalio
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
@@ -47,7 +46,7 @@ def reset():
 # NETWORK AND ADAFRUIT IO SETUP
 time.sleep(3)  # wait for serial
 
-mqtt_topic = "prcutler/feeds/jsontest"
+mqtt_topic = "prcutler/feeds/audio"
 aio_username = os.getenv("AIO_USERNAME")
 aio_key = os.getenv("AIO_KEY")
 
@@ -63,26 +62,17 @@ display = matrix.display
 aio = IO_HTTP(aio_username, aio_key, requests)
 
 try:
-#    data2 = aio.receive_data('jsontest')
-    # print(data2)
-    # print('receive_data ' + data2['value'], type(data2))
+    data2 = aio.receive_data('audio')
+    print(data2)
+    print('receive_data ' + data2['value'], type(data2))
 
-    data = aio.receive_data('audio')
-    print(data, type(data))
+    song_data = str(data2['value'])
+    print(song_data)
 
-    data_json = json.loads(data["value"])
-    print(data_json)
-    print("Song: ", data_json["title"] + " by " + data_json["artist"])
+    song_string = song_data.split(" by ", 1)
 
-
-    # song_data = str(data2['value'])
-    # song_data = json.loads(data2["value"])
-    # print("JSON data: " + song_data)
-
-    # song_string = song_data.split(" by ", 1)
-
-    song_title = data_json["title"]
-    song_artist = data_json["artist"]
+    song_title = song_string[0]
+    song_artist = song_string[1]
 
     song_title_scroll = song_title + '        '
     song_artist_scroll = song_artist + '         '
