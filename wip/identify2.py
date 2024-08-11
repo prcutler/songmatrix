@@ -14,14 +14,14 @@ async def main():
     artist = out['track']['subtitle']
     print(track_title + ' by ' + artist)
 
-    # payload = {"title": track_title, "artist": artist}
-    # payload_json = json.dumps(payload)
-    # print(payload_json)
+    payload = {"title": track_title, "artist": artist}
+    payload_json = json.dumps(payload)
+    print(payload_json)
 
-    payload = track_title + " by " + artist
+    # payload = track_title + " by " + artist
 
     aio = Client(config.aio_username, config.aio_key)
-    aio.send_data('audio', payload)
+    aio.send_data('jsontest', payload_json)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
