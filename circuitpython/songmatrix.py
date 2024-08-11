@@ -47,7 +47,7 @@ def reset():
 # NETWORK AND ADAFRUIT IO SETUP
 time.sleep(3)  # wait for serial
 
-mqtt_topic = "prcutler/feeds/jsontest"
+mqtt_topic = "prcutler/feeds/audio"
 aio_username = os.getenv("AIO_USERNAME")
 aio_key = os.getenv("AIO_KEY")
 
@@ -63,23 +63,12 @@ display = matrix.display
 aio = IO_HTTP(aio_username, aio_key, requests)
 
 try:
-#    data2 = aio.receive_data('jsontest')
-    # print(data2)
-    # print('receive_data ' + data2['value'], type(data2))
-
     data = aio.receive_data('audio')
     print(data, type(data))
 
     data_json = json.loads(data["value"])
     print(data_json)
     print("Song: ", data_json["title"] + " by " + data_json["artist"])
-
-
-    # song_data = str(data2['value'])
-    # song_data = json.loads(data2["value"])
-    # print("JSON data: " + song_data)
-
-    # song_string = song_data.split(" by ", 1)
 
     song_title = data_json["title"]
     song_artist = data_json["artist"]
@@ -133,15 +122,13 @@ def publish(client, userdata, topic, pid):
 def message(client, topic, payload):
     print("mqtt msg:", topic, payload)
 
-    # payload_data = json.loads(payload)
-    # print(payload_data, type(payload_data))
+    payload_data = json.loads(payload)
+    print(payload_data, type(payload_data))
 
-    song_data = str(payload)
+    print("Song: ", payload_data["title"] + " by " + payload_data["artist"])
 
-    song_string = song_data.split(" by ", 1)
-
-    song_title = song_string[0]
-    song_artist = song_string[1]
+    song_title = payload_data["title"]
+    song_artist = payload_data["artist"]
 
     song_title_scroll = song_title + '        '
     song_artist_scroll = song_artist + '         '
