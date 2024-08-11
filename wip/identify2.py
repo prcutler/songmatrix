@@ -9,7 +9,7 @@ from scipy.io.wavfile import write
 
 async def main():
     shazam = Shazam()
-    out = await shazam.recognize_song('output.wav')
+    out = await shazam.recognize_song('pj.wav')
     track_title = out['track']['title']
     artist = out['track']['subtitle']
     print(track_title + ' by ' + artist)
@@ -21,7 +21,7 @@ async def main():
     # payload = track_title + " by " + artist
 
     aio = Client(config.aio_username, config.aio_key)
-    aio.send_data('jsontest', payload_json)
+    aio.send_data('audio', payload_json)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
