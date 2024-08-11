@@ -22,7 +22,7 @@ async def main():
             write('output.wav', fs, my_recording)  # Save as WAV file
 
             shazam = Shazam()
-            out = await shazam.recognize_song('output.wav')
+            out = await shazam.recognize('output.wav')
             track_title = out['track']['title']
             artist = out['track']['subtitle']
 
