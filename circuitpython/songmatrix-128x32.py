@@ -1,5 +1,3 @@
-wifi = None
-
 import socketpool
 import ssl
 import wifi
@@ -8,15 +6,19 @@ import asyncio
 import os
 import time
 import displayio
-import json
-from adafruit_matrixportal.matrix import Matrix
+import board
+import displayio
+import framebufferio
+import rgbmatrix
 import terminalio
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io import IO_MQTT, IO_HTTP
 from adafruit_minimqtt.adafruit_minimqtt import MMQTTException
-from adafruit_display_text.scrolling_label import ScrollingLabel
 import json
+from adafruit_display_text.scrolling_label import ScrollingLabel
 
+
+# This program uses two 64x32 LED matrices to display the current song title and artist that is playing.
 
 # WIFI SETUP
 def connect_wifi_mqtt():
@@ -43,7 +45,6 @@ def reset():
         esp.reset()
         # pass
 
-
 # NETWORK AND ADAFRUIT IO SETUP
 time.sleep(3)  # wait for serial
 
@@ -55,10 +56,30 @@ pool = socketpool.SocketPool(wifi.radio)
 ssl_context = ssl.create_default_context()
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
-# DISPLAYIO SETUP
 displayio.release_displays()
-matrix = Matrix(width=64, height=32, bit_depth=3)
-display = matrix.display
+
+matrix = rgbmatrix.RGBMatrix(
+    width=128, bit_depth=2,
+    rgb_pins=[
+        board.MTX_R1,
+        board.MTX_G1,
+        board.MTX_B1,
+        board.MTX_R2,
+        board.MTX_G2,
+        board.MTX_B2
+    ],
+    addr_pins=[
+        board.MTX_ADDRA,
+        board.MTX_ADDRB,
+        board.MTX_ADDRC,
+        board.MTX_ADDRD
+    ],
+    clock_pin=board.MTX_CLK,
+    latch_pin=board.MTX_LAT,
+    output_enable_pin=board.MTX_OE
+)
+
+display = framebufferio.FramebufferDisplay(matrix, auto_refresh=False)
 
 aio = IO_HTTP(aio_username, aio_key, requests)
 
@@ -73,13 +94,19 @@ try:
     song_title = data_json["title"]
     song_artist = data_json["artist"]
 
-    song_title_scroll = song_title + '        '
-    song_artist_scroll = song_artist + '         '
+    song_length = len(song_title)
+    artist_length = len(song_artist)
+
+    song_spaces = ' ' * (21 - song_length)
+    artist_spaces = ' ' * (21 - artist_length)
+
+    song_title_scroll = song_title + song_spaces
+    song_artist_scroll = song_artist + artist_spaces
 
     title_scroll = ScrollingLabel(
         terminalio.FONT,
         text=song_title_scroll,
-        max_characters=10,
+        max_characters=20,
         color=0xff0000,
         animate_time=0.3
     )
@@ -89,7 +116,7 @@ try:
     artist_scroll = ScrollingLabel(
         terminalio.FONT,
         text=song_artist_scroll,
-        max_characters=10,
+        max_characters=20,
         color=0xFFFFFF,
         animate_time=0.3
     )
@@ -103,7 +130,6 @@ try:
 
 except:
     print("Adafruit IO reports 404 Error - is your feed empty?  Start recording.")
-
 
 # MQTT
 def connected(client, userdata, flags, rc):
@@ -130,8 +156,14 @@ def message(client, topic, payload):
     song_title = payload_data["title"]
     song_artist = payload_data["artist"]
 
-    song_title_scroll = song_title + '        '
-    song_artist_scroll = song_artist + '         '
+    song_length = len(song_title)
+    artist_length = len(song_artist)
+
+    song_spaces = ' ' * (21 - song_length)
+    artist_spaces = ' ' * (21 - artist_length)
+
+    song_title_scroll = song_title + song_spaces
+    song_artist_scroll = song_artist + artist_spaces
 
     title_scroll.text = song_title_scroll
     artist_scroll.text = song_artist_scroll
@@ -191,6 +223,7 @@ async def update_ui():
     while True:
         title_scroll.update()  # optional: force=True
         artist_scroll.update()
+        display.refresh(minimum_frames_per_second=0)
         await asyncio.sleep(0.1)
 
 
