@@ -3,10 +3,34 @@ import json
 import time
 
 import config
+import requests
 import sounddevice as sd
 from Adafruit_IO import Client
 from scipy.io.wavfile import write
 from shazamio import Shazam
+
+LB_SUBMIT_URL = "https://api.listenbrainz.org/1/submit-listens"
+
+
+def submit_listenbrainz(artist, title):
+    payload = {
+        "listen_type": "single",
+        "payload": [
+            {
+                "listened_at": int(time.time()),
+                "track_metadata": {
+                    "artist_name": artist,
+                    "track_name": title,
+                },
+            }
+        ],
+    }
+    headers = {"Authorization": f"Token {config.lb_api}"}
+    response = requests.post(LB_SUBMIT_URL, json=payload, headers=headers)
+    if response.status_code == 200:
+        print("Submitted to ListenBrainz")
+    else:
+        print(f"ListenBrainz error: {response.status_code} {response.text}")
 
 
 async def main():
@@ -34,6 +58,8 @@ async def main():
 
             aio = Client(config.aio_username, config.aio_key)
             aio.send_data("audio", payload_json)
+
+            submit_listenbrainz(artist, track_title)
 
         except KeyError:
             print("Song not identified")

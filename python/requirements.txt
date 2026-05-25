@@ -1,5 +1,6 @@
 Adafruit_IO==2.7.2
 config==0.5.1
+requests
 scipy==1.14.0
 shazamio==0.6.0
 sounddevice==0.4.7
