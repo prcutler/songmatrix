@@ -11,17 +11,18 @@ import displayio
 import framebufferio
 import rgbmatrix
 import terminalio
-import adafruit_minimqtt.adafruit_minimqtt as MQTT
-from adafruit_io.adafruit_io import IO_MQTT, IO_HTTP
-from adafruit_minimqtt.adafruit_minimqtt import MMQTTException
-import json
 from adafruit_display_text.scrolling_label import ScrollingLabel
 
 
-# This program uses two 64x32 LED matrices to display the current song title and artist that is playing.
+# This program uses two 64x32 LED matrices to display the current song title and artist playing on ListenBrainz.
+
+LISTENBRAINZ_USER = "silwenae"
+LISTENBRAINZ_API = "https://api.listenbrainz.org/1"
+POLL_INTERVAL = 30  # seconds
+
 
 # WIFI SETUP
-def connect_wifi_mqtt():
+def connect_wifi():
     if wifi:
         while not wifi.radio.connected:
             print("Connecting to wifi...")
@@ -32,10 +33,6 @@ def connect_wifi_mqtt():
             print("Connecting to wifi...")
             esp.connect_AP(os.getenv("CIRCUITPY_WIFI_SSID"), os.getenv("CIRCUITPY_WIFI_PASSWORD"))
             time.sleep(1)
-    while not mqtt_client.is_connected():
-        print(f"Connecting to AIO...")
-        mqtt_client.connect()
-        time.sleep(1)
 
 
 def reset():
@@ -45,12 +42,8 @@ def reset():
         esp.reset()
         # pass
 
-# NETWORK AND ADAFRUIT IO SETUP
+# NETWORK SETUP
 time.sleep(3)  # wait for serial
-
-mqtt_topic = "prcutler/feeds/audio"
-aio_username = os.getenv("AIO_USERNAME")
-aio_key = os.getenv("AIO_KEY")
 
 pool = socketpool.SocketPool(wifi.radio)
 ssl_context = ssl.create_default_context()
@@ -81,123 +74,86 @@ matrix = rgbmatrix.RGBMatrix(
 
 display = framebufferio.FramebufferDisplay(matrix, auto_refresh=False)
 
-aio = IO_HTTP(aio_username, aio_key, requests)
+
+# LISTENBRAINZ
+def get_now_playing():
+    """Return the currently playing track for LISTENBRAINZ_USER, falling back
+    to their most recent listen if nothing is playing right now."""
+    try:
+        response = requests.get(f"{LISTENBRAINZ_API}/user/{LISTENBRAINZ_USER}/playing-now")
+        data = response.json()
+        response.close()
+        listens = data.get("payload", {}).get("listens", [])
+        if listens:
+            return listens[0]
+
+        response = requests.get(f"{LISTENBRAINZ_API}/user/{LISTENBRAINZ_USER}/listens?count=1")
+        data = response.json()
+        response.close()
+        listens = data.get("payload", {}).get("listens", [])
+        if listens:
+            return listens[0]
+    except Exception as ex:
+        print(f"ListenBrainz request failed: {ex}")
+
+    return None
+
+
+def scroll_text(text):
+    spaces = ' ' * (21 - len(text))
+    return text + spaces
+
+
+song_title = "Loading..."
+song_artist = "ListenBrainz"
 
 try:
-    data = aio.receive_data('audio')
-    print(data, type(data))
+    connect_wifi()
+    listen = get_now_playing()
+    if listen:
+        metadata = listen.get("track_metadata", {})
+        song_title = metadata.get("track_name", "Unknown track")
+        song_artist = metadata.get("artist_name", "Unknown artist")
+        print("Song: ", song_title + " by " + song_artist)
+except Exception as ex:
+    print(f"Exception: {ex}")
 
-    data_json = json.loads(data["value"])
-    print(data_json)
-    print("Song: ", data_json["title"] + " by " + data_json["artist"])
+# Baseline y-position of each line. base_alignment anchors to the text
+# baseline instead of the glyph bounding box, so title/artist line up the
+# same way regardless of which letters (ascenders/descenders) each one has.
+TITLE_Y = 14
+ARTIST_Y = 30
 
-    song_title = data_json["title"]
-    song_artist = data_json["artist"]
+title_scroll = ScrollingLabel(
+    terminalio.FONT,
+    text=scroll_text(song_title),
+    max_characters=20,
+    color=0xff0000,
+    animate_time=0.3,
+    base_alignment=True
+)
+title_scroll.x = 1
+title_scroll.y = TITLE_Y
 
-    song_length = len(song_title)
-    artist_length = len(song_artist)
+artist_scroll = ScrollingLabel(
+    terminalio.FONT,
+    text=scroll_text(song_artist),
+    max_characters=20,
+    color=0xFFFFFF,
+    animate_time=0.3,
+    base_alignment=True
+)
+artist_scroll.x = 1
+artist_scroll.y = ARTIST_Y
 
-    song_spaces = ' ' * (21 - song_length)
-    artist_spaces = ' ' * (21 - artist_length)
-
-    song_title_scroll = song_title + song_spaces
-    song_artist_scroll = song_artist + artist_spaces
-
-    title_scroll = ScrollingLabel(
-        terminalio.FONT,
-        text=song_title_scroll,
-        max_characters=20,
-        color=0xff0000,
-        animate_time=0.3
-    )
-    title_scroll.x = 1
-    title_scroll.y = 8
-
-    artist_scroll = ScrollingLabel(
-        terminalio.FONT,
-        text=song_artist_scroll,
-        max_characters=20,
-        color=0xFFFFFF,
-        animate_time=0.3
-    )
-    artist_scroll.x = 1
-    artist_scroll.y = 24
-
-    g = displayio.Group()
-    g.append(title_scroll)
-    g.append(artist_scroll)
-    display.root_group = g
-
-except:
-    print("Adafruit IO reports 404 Error - is your feed empty?  Start recording.")
-
-# MQTT
-def connected(client, userdata, flags, rc):
-    print("Subscribing to %s" % mqtt_topic)
-    client.subscribe(mqtt_topic)
-
-
-def disconnected(client, userdata, rc):
-    print("Disconnected from MQTT Broker!")
-
-
-def publish(client, userdata, topic, pid):
-    print('Published to {0} with PID {1}'.format(topic, pid))
-
-
-def message(client, topic, payload):
-    print("mqtt msg:", topic, payload)
-
-    payload_data = json.loads(payload)
-    print(payload_data, type(payload_data))
-
-    print("Song: ", payload_data["title"] + " by " + payload_data["artist"])
-
-    song_title = payload_data["title"]
-    song_artist = payload_data["artist"]
-
-    song_length = len(song_title)
-    artist_length = len(song_artist)
-
-    song_spaces = ' ' * (21 - song_length)
-    artist_spaces = ' ' * (21 - artist_length)
-
-    song_title_scroll = song_title + song_spaces
-    song_artist_scroll = song_artist + artist_spaces
-
-    title_scroll.text = song_title_scroll
-    artist_scroll.text = song_artist_scroll
-    time.sleep(3)
-
-
-if wifi:
-    mqtt_client = MQTT.MQTT(
-        broker="io.adafruit.com",
-        port=1883,
-        username=os.getenv('AIO_USERNAME'),
-        password=os.getenv('AIO_KEY'),
-        socket_pool=pool,
-        ssl_context=ssl_context,
-        is_ssl=False,
-        socket_timeout=0.01  # apparently socket recvs even block asyncio
-    )
-else:
-    mqtt_client = MQTT.MQTT(
-        broker="io.adafruit.com",
-        username=os.getenv('AIO_USERNAME'),
-        password=os.getenv('AIO_KEY'),
-        socket_timeout=0.01  # apparently socket recvs even block asyncio
-    )
-    MQTT.set_socket(socket, esp)
-
-mqtt_client.on_connect = connected
-mqtt_client.on_disconnect = disconnected
-mqtt_client.on_message = message
-mqtt_client.on_publish = publish
+g = displayio.Group()
+g.append(title_scroll)
+g.append(artist_scroll)
+display.root_group = g
 
 while True:
     try:
-        connect_wifi_mqtt()
+        connect_wifi()
         break
     except Exception or OSError as ex:
         print(f"Exception: {ex} Resetting wifi...")
@@ -207,16 +163,26 @@ while True:
 
 # ASYNC
 
-async def update_network():
+async def update_now_playing():
+    global song_title, song_artist
     while True:
         try:
-            connect_wifi_mqtt()
-            mqtt_client.loop(0.2)
-        except (RuntimeError, ConnectionError, MMQTTException) as ex:
+            connect_wifi()
+            listen = get_now_playing()
+            if listen:
+                metadata = listen.get("track_metadata", {})
+                new_title = metadata.get("track_name", "Unknown track")
+                new_artist = metadata.get("artist_name", "Unknown artist")
+                if new_title != song_title or new_artist != song_artist:
+                    print("Song: ", new_title + " by " + new_artist)
+                    song_title = new_title
+                    song_artist = new_artist
+                    title_scroll.text = scroll_text(song_title)
+                    artist_scroll.text = scroll_text(song_artist)
+        except (RuntimeError, ConnectionError) as ex:
             print(f"Exception: {ex} Resetting wifi...")
             reset()
-            time.sleep(1)
-        await asyncio.sleep(1)
+        await asyncio.sleep(POLL_INTERVAL)
 
 
 async def update_ui():
@@ -228,8 +194,8 @@ async def update_ui():
 
 
 async def main():
-    net_task = asyncio.create_task(update_network())
+    now_playing_task = asyncio.create_task(update_now_playing())
     ui_task = asyncio.create_task(update_ui())
-    await asyncio.gather(net_task, ui_task)
+    await asyncio.gather(now_playing_task, ui_task)
 
 asyncio.run(main())
